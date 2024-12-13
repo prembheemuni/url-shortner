@@ -4,6 +4,7 @@ import URL from "../models/url.js"
 import { CustomError } from "../middleware/error.js"
 import { TryCatch } from "../utils.js"
 
+const baseRoute = "/url"
 
 export const handleGenerateNewShortUrl = TryCatch(async (req,res,next) => {
     const body = req.body
@@ -16,7 +17,7 @@ export const handleGenerateNewShortUrl = TryCatch(async (req,res,next) => {
         visitHistory : []
     }))
 
-    const shortUrl = req.hostname + "/" + shortID
+    const shortUrl = req.hostname + baseRoute + "/" + shortID
 
     return res.status(201).json({success : true, shortUrl:shortUrl})
 })
