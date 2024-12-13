@@ -1,0 +1,43 @@
+# Node.js dependencies
+node_modules/
+
+# npm package logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# Dependency directories
+.pnp/
+.pnp.js
+
+# Log files
+logs
+*.log
+*.log.*
+
+# OS-specific files
+.DS_Store       # macOS
+Thumbs.db       # Windows
+
+# IDE/editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Coverage folder (for code coverage reports)
+coverage/
+
+# TypeScript build output (if using TypeScript)
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+
+# ESLint cache
+.eslintcache
