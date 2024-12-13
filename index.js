@@ -20,7 +20,7 @@ app.use(bodyParser.json())
 const showLogs = process.env.LOGGER || false
 showLogs && app.use(logger)
 
-app.use("/",(req,res)=>{
+app.get("/",(req,res)=>{
     console.log("URL SHORTNER SERVICE")
     return res.status(200).json({success:true, message:'App is working...'})
 })
