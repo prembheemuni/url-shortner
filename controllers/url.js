@@ -16,7 +16,9 @@ export const handleGenerateNewShortUrl = TryCatch(async (req,res,next) => {
         visitHistory : []
     }))
 
-    return res.status(201).json({success : true, shortId:shortID})
+    const shortUrl = req.hostname + "/" + shortID
+
+    return res.status(201).json({success : true, shortUrl:shortUrl})
 })
 
 export const getUrlDetails = TryCatch(async (req,res,next) => {
