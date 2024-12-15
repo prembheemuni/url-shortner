@@ -1,65 +1,80 @@
-import { nanoid } from "nanoid"
-import constants from "../constants.js"
-import URL from "../models/url.js"
-import { CustomError } from "../middleware/error.js"
-import { TryCatch } from "../utils.js"
+import { nanoid } from "nanoid";
+import constants from "../constants.js";
+import URL from "../models/url.js";
+import { CustomError } from "../middleware/error.js";
+import { TryCatch } from "../utils.js";
 
-const baseRoute = "/url"
+const baseRoute = "/url";
 
-export const handleGenerateNewShortUrl = TryCatch(async (req,res,next) => {
-    const body = req.body
-    if(!body.url) return next(new CustomError("Url is needed",400));
-    const shortID = nanoid(constants.NANO_ID_LENGTH)
+export const handleGenerateNewShortUrl = TryCatch(async (req, res, next) => {
+  const body = req.body;
+  const loggedInUserDetails = res?.user
+  if (!body.url) return next(new CustomError("Url is needed", 400));
+  const shortID = nanoid(constants.NANO_ID_LENGTH);
 
-    await URL.create(({
-        shortId : shortID,
-        redirectURL : body.url,
-        visitHistory : []
-    }))
+  if(!loggedInUserDetails) return next(new CustomError("User details not found",500))
 
-    const shortUrl = req.hostname + baseRoute + "/" + shortID
+  await URL.create({
+    shortId: shortID,
+    redirectURL: body.url,
+    visitHistory: [],
+    author: loggedInUserDetails.id
+  });
 
-    return res.status(201).json({success : true, shortUrl:shortUrl})
-})
+  const shortUrl = req.hostname + baseRoute + "/" + shortID;
 
-export const getUrlDetails = TryCatch(async (req,res,next) => {
-    const {id} = req.params
-    if(!id) return next(new CustomError("Please provide shortid",400))
-    
-    const urlDetails = await URL.findOne({shortId : id});
+  return res.status(201).json({ success: true, shortUrl: shortUrl });
+});
 
-    if(!urlDetails) return next(new CustomError("Please provide valid short id",400))
+export const getUrlDetails = TryCatch(async (req, res, next) => {
+  const { id } = req.params;
+  if (!id) return next(new CustomError("Please provide shortid", 400));
 
-    const data = {redirectUrl : urlDetails.redirectURL, shortId : urlDetails.shortId, clicks : urlDetails.visitHistory.length}
+  const urlDetails = await URL.findOne({ shortId: id });
 
-    return res.status(200).json({success : true, data : data})
-})
+  if (!urlDetails)
+    return next(new CustomError("Please provide valid short id", 400));
 
-export const redirectURLToOriginalURL = TryCatch(async (req,res,next) => {
-    const {id} = req.params
-    if(!id) return next(new CustomError("Please provide shortid",400))
-    
-    const urlDetails = await URL.findOne({shortId : id})
+  const data = {
+    redirectUrl: urlDetails.redirectURL,
+    shortId: urlDetails.shortId,
+    clicks: urlDetails.visitHistory.length,
+  };
 
-    if(!urlDetails) return next(new CustomError("Please provide valid short id",400))
+  return res.status(200).json({ success: true, data: data });
+});
 
-    res.redirect(urlDetails.redirectURL)
+export const redirectURLToOriginalURL = TryCatch(async (req, res, next) => {
+  const { id } = req.params;
+  if (!id) return next(new CustomError("Please provide shortid", 400));
 
-})
+  const urlDetails = await URL.findOneAndUpdate(
+    { shortId: id },
+    { $push: { visitHistory: { timeStamp: Date.now() } } },
+    { new: true }
+  );
 
-export const getAllUrlsList = TryCatch(async (req,res,next) => {
-    const data = await URL.find({})
+  if (!urlDetails)
+    return next(new CustomError("Please provide valid short id", 400));
 
-    if(!data) return next(new CustomError("Not Data found",400))
+  res.redirect(urlDetails.redirectURL);
+});
 
-    return res.status(200).json({success : true,data : data})
-})
+export const getAllUrlsList = TryCatch(async (req, res, next) => {
+  const data = await URL.find({});
 
-export const deleteShortId = TryCatch( async (req, res, next) => {
-    const {id} = req.params;
+  if (!data) return next(new CustomError("Not Data found", 400));
 
-    const urlFound = await URL.findOneAndDelete({shortId : id});
-    if(!urlFound) return next(new CustomError("Not found"))
+  return res.status(200).json({ success: true, data: data });
+});
 
-    return res.status(200).json({success : true, message : 'deleted successfully'})
-})
+export const deleteShortId = TryCatch(async (req, res, next) => {
+  const { id } = req.params;
+
+  const urlFound = await URL.findOneAndDelete({ shortId: id });
+  if (!urlFound) return next(new CustomError("Not found"));
+
+  return res
+    .status(200)
+    .json({ success: true, message: "deleted successfully" });
+});

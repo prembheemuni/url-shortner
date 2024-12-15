@@ -5,7 +5,8 @@ import urlRouter from "./routes/url.js";
 import { logger } from "./middleware/logger.js";
 import bodyParser from "body-parser";
 import { errorMiddleware, notFoundRoute } from "./middleware/error.js";
-import { redirectURLToOriginalURL } from "./controllers/url.js";
+import userRouter from "./routes/user.js";
+import { isAuthenticated } from "./middleware/auth.js";
 dotenv.config()
 
 
@@ -31,7 +32,8 @@ app.get("/health",(req,res)=>{
 
 
 // Routes
-app.use("/url",urlRouter);
+app.use("/url",isAuthenticated,urlRouter);
+app.use("/user",userRouter)
 
 // Error
 app.use(errorMiddleware)
